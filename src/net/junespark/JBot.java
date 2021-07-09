@@ -126,6 +126,7 @@ public class JBot {
                     gobByCoord(reference.rc.sub(s.getCoord().getX(), s.getCoord().getY()))
                         .orElse(null))
                 ).forEach(s -> {
+                    System.out.printf("going to check stall x: %s, y: %s%n",s.getCoord().getX(), s.getCoord().getY());
                     act.act(s);
                 try {
                     goTo(goTo);

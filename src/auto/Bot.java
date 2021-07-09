@@ -212,8 +212,12 @@ public class Bot implements Defer.Callable<Void> {
             jBot.remotePathing(reference.gob, (jt) -> {
                 jt.gob.rclick();
                 waitFinish(si::openedStall);
-                pause(500);
-                si.analyzeStall(jt.getGameCoord());
+                pause(1500);
+                try {
+                    si.analyzeStall(jt.getGameCoord());
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
             });
         };
     }

@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class Integration {
     
-    private static final boolean local = false;
+    private static final boolean local = true;
     private static final boolean upload = true;
     private static final String MARKET = "Finloch Market";
     private static final String SERVER_URL = local ? "http://localhost:5000" : "https://hnh-market.junespark.net";

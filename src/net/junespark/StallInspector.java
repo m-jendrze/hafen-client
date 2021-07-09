@@ -93,9 +93,11 @@ public class StallInspector {
     
     @SuppressWarnings("unchecked")
     private StallItem getStallItem(Widget wdg) throws NoSuchFieldException, IllegalAccessException {
-        List<Object> cinfo = (List<Object>) getFieldValue(wdg, "cinfo");
+    
+        Object info = getFieldValue(wdg, "info");
+        List<ItemInfo> cinfo = ItemInfo.buildinfo((ItemInfo.Owner) wdg, (Object[]) info);
         ResData resdata = (ResData) getFieldValue(wdg, "res");
-        if(resdata == null || cinfo == null) {
+        if(resdata == null) {
             return null;
         }
         Resource res = resdata.res.get();
@@ -128,7 +130,7 @@ public class StallInspector {
         return item;
     }
     
-    private void analyzeCinfo(List<Object> cinfo) throws IllegalAccessException {
+    private void analyzeCinfo(List<ItemInfo> cinfo) throws IllegalAccessException {
         //TODO elixirs
         
         List<String> knownFields = new ArrayList<>();
@@ -188,7 +190,7 @@ public class StallInspector {
         String name = null;
         if(info != null) {
             List<ItemInfo> cinfo = ItemInfo.buildinfo((ItemInfo.Owner) price, (Object[]) info);
-            name = getName(Arrays.asList(cinfo.toArray()));
+            name = getName(cinfo);
         }
         name = name != null ? name : res.layer(Resource.Tooltip.class).t;
         final String pgfx = res.name;
@@ -204,7 +206,7 @@ public class StallInspector {
         return new Price(name, pgfx, num, q);
     }
     
-    private Integer getAmount(List<Object> cinfo) {
+    private Integer getAmount(List<ItemInfo> cinfo) {
         Object quality = cinfo.stream()
             .filter(e -> "haven.GItem$Amount".equals(e.getClass().getName()))
             .findFirst()
@@ -215,7 +217,7 @@ public class StallInspector {
         return null;
     }
     
-    private Double getQuality(List<Object> cinfo) {
+    private Double getQuality(List<ItemInfo> cinfo) {
         Object quality = cinfo.stream()
             .filter(e -> "haven.res.ui.tt.q.quality.Quality".equals(e.getClass().getName()))
             .findFirst()
@@ -226,7 +228,7 @@ public class StallInspector {
         return null;
     }
     
-    private String getName(List<Object> cinfo) {
+    private String getName(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.ItemInfo$Name".equals(e.getClass().getName()))
             .findFirst()
@@ -241,7 +243,7 @@ public class StallInspector {
     }
     
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> getContents(List<Object> cinfo) {
+    private static Map<String, Object> getContents(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.ItemInfo$Contents".equals(e.getClass().getName()))
             .findFirst()
@@ -249,7 +251,7 @@ public class StallInspector {
         if(element instanceof ItemInfo.Contents) {
             ItemInfo.Contents contents = (ItemInfo.Contents) element;
             ItemInfo.Contents.Content content = contents.content();
-            List<Object> info = (List<Object>) getFieldValue(element, "sub");
+            List<ItemInfo> info = (List<ItemInfo>) getFieldValue(element, "sub");
             Map<String, Object> elixir = getElixir(info);
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("name", content.name);
@@ -265,7 +267,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getWear(List<Object> cinfo) {
+    private static Map<String, Object> getWear(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.res.ui.tt.wear.Wear".equals(e.getClass().getName()))
             .findFirst()
@@ -278,7 +280,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getGast(List<Object> cinfo) {
+    private static Map<String, Object> getGast(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Gast".equals(e.getClass().getName()))
             .findFirst()
@@ -291,7 +293,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getIngredients(List<Object> cinfo) {
+    private static Map<String, Object> getIngredients(List<ItemInfo> cinfo) {
         List<Object> element = cinfo.stream()
             .filter(e -> "Ingredient".equals(e.getClass().getName()))
             .collect(Collectors.toList());
@@ -306,7 +308,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getGrevious(List<Object> cinfo) {
+    private static Map<String, Object> getGrevious(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Grievous".equals(e.getClass().getName()))
             .findFirst()
@@ -318,7 +320,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getArmpen(List<Object> cinfo) {
+    private static Map<String, Object> getArmpen(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Armpen".equals(e.getClass().getName()))
             .findFirst()
@@ -330,7 +332,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getCoinage(List<Object> cinfo) {
+    private static Map<String, Object> getCoinage(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Coinage".equals(e.getClass().getName()))
             .findFirst()
@@ -342,7 +344,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getWeight(List<Object> cinfo) {
+    private static Map<String, Object> getWeight(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Weight".equals(e.getClass().getName()))
             .findFirst()
@@ -359,7 +361,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getDamage(List<Object> cinfo) {
+    private static Map<String, Object> getDamage(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Damage".equals(e.getClass().getName()))
             .findFirst()
@@ -371,7 +373,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getArmor(List<Object> cinfo) {
+    private static Map<String, Object> getArmor(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Armor".equals(e.getClass().getName()))
             .findFirst()
@@ -385,7 +387,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getFoodInfo(List<Object> cinfo) {
+    private static Map<String, Object> getFoodInfo(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.resutil.FoodInfo".equals(e.getClass().getName()))
             .findFirst()
@@ -401,7 +403,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, Object> getCuriosity(List<Object> cinfo) {
+    private static Map<String, Object> getCuriosity(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.resutil.Curiosity".equals(e.getClass().getName()))
             .findFirst()
@@ -419,7 +421,7 @@ public class StallInspector {
         return Collections.emptyMap();
     }
     
-    private static Map<String, List<Map<String, Object>>> getAttrMods(List<Object> cinfo) {
+    private static Map<String, List<Map<String, Object>>> getAttrMods(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "haven.res.ui.tt.attrmod.AttrMod".equals(e.getClass().getName()))
             .findFirst()
@@ -435,13 +437,13 @@ public class StallInspector {
     }
     
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> getElixir(List<Object> cinfo) {
+    private static Map<String, Object> getElixir(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Elixir".equals(e.getClass().getName()))
             .findFirst()
             .orElse(null);
         if(element != null) {
-            List<?> effs = (List<?>) getFieldValue(element, "effs");
+            List<ItemInfo> effs = (List<ItemInfo>) getFieldValue(element, "effs");
             List<Map<String, Object>> modsList = effs.stream()
                 .map(e -> {
                     Map<String, Object> map = new LinkedHashMap<>();
@@ -480,7 +482,7 @@ public class StallInspector {
     }
     
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> getISlots(List<Object> cinfo) {
+    private static Map<String, Object> getISlots(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "ISlots".equals(e.getClass().getName()))
             .findFirst()
@@ -501,7 +503,7 @@ public class StallInspector {
     }
     
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> getSlotted(List<Object> cinfo) {
+    private static Map<String, Object> getSlotted(List<ItemInfo> cinfo) {
         Object element = cinfo.stream()
             .filter(e -> "Slotted".equals(e.getClass().getName()))
             .findFirst()
@@ -514,7 +516,7 @@ public class StallInspector {
                     "attr", Arrays.stream(((Resource[]) getFieldValue(element, "attrs")))
                         .map(StallInspector::getAttrFromRes)
                         .collect(Collectors.toList()),
-                    "stats", getAttrMods((List<Object>) getFieldValue(element, "sub"))
+                    "stats", getAttrMods((List<ItemInfo>) getFieldValue(element, "sub"))
                         .get("mods"))
             );
         }
@@ -531,7 +533,7 @@ public class StallInspector {
                     map.put("gfx", res.name);
                 }
                 map.put("name", getFieldValue(e, "name"));
-                map.put("info", getAttrMods((List<Object>) getFieldValue(e, "info"))
+                map.put("info", getAttrMods((List<ItemInfo>) getFieldValue(e, "info"))
                     .get("mods"));
                 return map;
             }).collect(Collectors.toList());

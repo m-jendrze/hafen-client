@@ -26,6 +26,8 @@
 
 package haven;
 
+import net.junespark.HeadlessUI;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -171,6 +173,10 @@ public class MainFrame extends java.awt.Frame implements Console.Directory {
 	    sz = isz;
 	}
 	this.g = new ThreadGroup(HackThread.tg(), "Haven client");
+	if (Config.headless) {
+		this.p = new HeadlessUI();
+		return;
+	}
 	JOGLPanel p = new JOGLPanel(sz);
 	this.p = p;
 	if(fsmode == null) {

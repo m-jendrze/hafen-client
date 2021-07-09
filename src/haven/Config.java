@@ -50,6 +50,7 @@ public class Config {
     public static URL screenurl = geturl("haven.screenurl", "http://game.havenandhearth.com/mt/ss");
     public static URL cachebase = geturl("haven.cachebase", "http://game.havenandhearth.com/render/");
     public static URL mapbase = geturl("haven.mapbase", "http://game.havenandhearth.com/hres/");
+    public static boolean headless = false;
     public static boolean dbtext = getprop("haven.dbtext", "off").equals("on");
     public static boolean bounddb = getprop("haven.bounddb", "off").equals("on");
     public static boolean profile = getprop("haven.profile", "off").equals("on");
@@ -214,6 +215,7 @@ public class Config {
 	out.println("usage: haven.jar [OPTIONS] [SERVER[:PORT]]");
 	out.println("Options include:");
 	out.println("  -h                 Display this help");
+	out.println("  -n                 Headless");
 	out.println("  -d                 Display debug text");
 	out.println("  -P                 Enable profiling");
 	out.println("  -G                 Enable GPU profiling");
@@ -226,7 +228,7 @@ public class Config {
     }
 
     public static void cmdline(String[] args) {
-	PosixArgs opt = PosixArgs.getopt(args, "hdPGU:r:A:u:C:p:");
+	PosixArgs opt = PosixArgs.getopt(args, "hndPGU:r:A:u:C:p:");
 	if(opt == null) {
 	    usage(System.err);
 	    System.exit(1);
@@ -236,6 +238,9 @@ public class Config {
 	    case 'h':
 		usage(System.out);
 		System.exit(0);
+		break;
+	    case 'n':
+		headless = true;
 		break;
 	    case 'd':
 		dbtext = true;
