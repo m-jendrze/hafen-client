@@ -1,0 +1,16 @@
+#String pr
+paginae/act/automation
+#uint16 pver
+2
+#String name
+Inspect stall
+#String preq
+
+#uint16 hk
+0
+#uint16 ad length
+2
+#String ad[0]
+@
+#String ad[1]
+inspect_stall

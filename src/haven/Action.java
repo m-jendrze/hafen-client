@@ -46,6 +46,11 @@ public enum Action {
     FUEL_SMELTER_12(gui -> Bot.fuelGob(gui, "terobjs/smelter", "Coal", 12)),
     FUEL_OVEN_4(gui -> Bot.fuelGob(gui, "terobjs/oven", "Branch", 4)),
     
+    INSPECT_STAND(Bot::inspectStall, "Inspect Stall", "Inspects closest stall and send data to server."),
+    INIT_STALL_INSPECTOR(Bot::initializeStall, "Initialize Stall inspector", "Inspects closest stall and send data to server."),
+    GET_STALLS(Bot::getAllStalls, "Get all stalls", "Inspects closest stall and send data to server."),
+    TEST(Bot::test, "Get all stalls", "Inspects closest stall and send data to server."),
+    
     CLEAR_PLAYER_DAMAGE(GobDamageInfo::clearPlayerDamage, "Clear damage from player"),
     CLEAR_ALL_DAMAGE(GobDamageInfo::clearAllDamage, "Clear damage from everyone");
     

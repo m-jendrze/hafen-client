@@ -45,6 +45,8 @@ import static haven.Action.*;
 import static haven.Inventory.*;
 import static haven.ItemFilter.*;
 import static haven.KeyBinder.*;
+import static haven.MCache.*;
+import static haven.OCache.*;
 
 public class GameUI extends ConsoleHost implements Console.Directory {
     public static final Text.Foundry msgfoundry = new Text.Foundry(Text.dfont, 14);
@@ -2043,6 +2045,7 @@ public class GameUI extends ConsoleHost implements Console.Directory {
 		}
 	    });
     }
+    
     public Map<String, Console.Command> findcmds() {
 	return(cmdmap);
     }

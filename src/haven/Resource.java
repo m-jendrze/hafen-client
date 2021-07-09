@@ -178,6 +178,7 @@ public class Resource implements Serializable {
     }
 
     private Resource(Pool pool, String name, int ver) {
+//        System.out.println(name);
 	this.pool = pool;
 	this.name = name;
 	this.ver = ver;

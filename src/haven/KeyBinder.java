@@ -36,13 +36,13 @@ public class KeyBinder {
 	gson = (new GsonBuilder()).setPrettyPrinting().create();
 	String json = Config.loadFile(CONFIG_JSON);
 	Map<Action, KeyBind> tmpGeneralCFG = null;
-    
+ 
 	try {
 	    ConfigBean configBean = gson.fromJson(json, ConfigBean.class);
 	    tmpGeneralCFG = configBean.general;
 	    Fightsess.updateKeybinds(configBean.combat);
 	} catch (Exception ignore) {}
-    
+ 
 	if(tmpGeneralCFG == null) {
 	    try {
 		Type type = new TypeToken<Map<Action, KeyBind>>() {
@@ -50,7 +50,7 @@ public class KeyBinder {
 		tmpGeneralCFG = gson.fromJson(json, type);
 	    } catch (Exception ignored) {}
 	}
-    
+ 
 	if(tmpGeneralCFG == null) {
 	    tmpGeneralCFG = new HashMap<>();
 	}
@@ -86,7 +86,10 @@ public class KeyBinder {
 	add(KeyEvent.VK_H, CTRL,  TOGGLE_GOB_HITBOX);
 	add(KeyEvent.VK_R, ALT,   TOGGLE_GOB_RADIUS);
 	add(KeyEvent.VK_Z, CTRL,  TOGGLE_TILE_CENTERING);
-	add(KeyEvent.VK_Q, ALT,   BOT_PICK_ALL_HERBS);
+	
+	add(KeyEvent.VK_Q, ALT,   INSPECT_STAND);
+        add(KeyEvent.VK_W, ALT,   INIT_STALL_INSPECTOR);
+    	add(KeyEvent.VK_E, ALT,   TEST);
 	
 	//Camera controls
 	add(KeyEvent.VK_ADD, NONE, CAM_ZOOM_IN);
@@ -214,7 +217,7 @@ public class KeyBinder {
 	private final int code;
 	private final int mods;
 	transient private Action action;
-    
+ 
 	public KeyBind(int code, int mods) {
 	    this(code, mods, null);
 	}
@@ -224,7 +227,7 @@ public class KeyBinder {
 	    this.mods = mods;
 	    this.action = action;
 	}
-    
+ 
 	public boolean match(KeyEvent e) {
 	    return match(e.getKeyCode(), getModFlags(e.getModifiersEx()));
 	}
@@ -242,7 +245,7 @@ public class KeyBinder {
 	public String shortcut() {
 	    return shortcut(false);
 	}
-    
+ 
 	public String shortcut(boolean shortened) {
 	    if(isEmpty()) {return shortened ? "" : "<UNBOUND>";}
 	    String key = KeyEvent.getKeyText(code);
@@ -257,11 +260,11 @@ public class KeyBinder {
 	    }
 	    return key;
 	}
-    
+ 
 	public boolean isEmpty() {
 	    return code == 0 && mods == 0;
 	}
-    
+ 
 	@Override
 	public boolean equals(Object obj) {
 	    if(obj instanceof KeyBind) {
@@ -315,7 +318,7 @@ public class KeyBinder {
 	private final Button btn;
 	private KeyBind keyBind;
 	private final Action2<KeyBind, KeyBind> update;
-    
+ 
 	public ShortcutWidget(KeyBind bind, Action2<KeyBind, KeyBind> update) {
 	    this(bind, update, bind.action != null ? bind.action.name : "<EMPTY ACTION>");
 	}
@@ -324,7 +327,7 @@ public class KeyBinder {
 	    btn = add(new Button(UI.scale(75), bind.shortcut()) {
 		  @Override
 		  protected boolean i10n() { return false; }
-	    
+	   
 		  @Override
 		  public void click() {
 		      ui.root.add(new ShortcutSelectorWdg(keyBind, ShortcutWidget.this), ui.mc.sub(50, 20));
@@ -347,13 +350,13 @@ public class KeyBinder {
 	    sz = UI.scale(300, 24);
 	    add(new Label(label), UI.scale(5, 5));
 	}
-    
+ 
 	@Override
 	public void keyBindChanged(KeyBind from, KeyBind to) {
 	    update.call(from, to);
 	    update(to);
 	}
-    
+ 
 	public void update(KeyBind to) {
 	    keyBind = to;
 	    btn.change(keyBind.shortcut());
@@ -367,7 +370,7 @@ public class KeyBinder {
 	private final KeyBind bind;
 	private final Result listener;
 	private final Tex label;
-    
+ 
 	private UI.Grab keygrab;
 	private UI.Grab mousegrab;
 	
@@ -377,7 +380,7 @@ public class KeyBinder {
 	    label = RichText.render("Press any key...\nOr DELETE to unbind", 0).tex();
 	    sz = label.sz().add(PAD.mul(2));
 	}
-    
+ 
 	@Override
 	public boolean keydown(KeyEvent ev) {
 	    int code = ev.getKeyCode();
@@ -395,7 +398,7 @@ public class KeyBinder {
 	    }
 	    return true;
 	}
-    
+ 
 	@Override
 	protected void attach(UI ui) {
 	    super.attach(ui);

@@ -170,10 +170,11 @@ public class Bootstrap implements UI.Receiver, UI.Runner {
 		    ui.uimsg(1, "error", e.getMessage());
 		    continue retry;
 		}
-	    } else if((tokenname.length() > 0) && ((token = getprefb("savedtoken-" + tokenname, null, false)) != null)) {
+	    } else if((tokenname.length() > 0) && ((token = getprefb("savedtoken-" + tokenname, null, false)) != null) && !ui.forcePswd) {
 		savepw = true;
 		tokenhex = Utils.byte2hex(token);
 		ui.uimsg(1, "token", tokenname, tokenhex);
+		
 		while(true) {
 		    Message msg = getmsg();
 		    if(msg.id == 1) {

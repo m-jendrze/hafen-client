@@ -36,12 +36,13 @@ import java.awt.GraphicsDevice;
 import java.awt.DisplayMode;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.InputEvent;
-import java.awt.image.BufferedImage;
 import java.util.*;
-import static haven.Utils.el;
+import java.util.stream.Stream;
+
 import haven.render.Environment;
 import haven.render.Render;
+import net.junespark.RemoteInterface;
+import net.junespark.StallInspector;
 
 public class UI {
     public static int MOD_SHIFT = 1, MOD_CTRL = 2, MOD_META = 4, MOD_SUPER = 8;
@@ -74,6 +75,8 @@ public class UI {
     public final ActAudio.Root audio = new ActAudio.Root();
     private static final double scalef;
     public GameUI gui = null;
+    public StallInspector stallInspector = new StallInspector(widgets);
+    public boolean forcePswd = false;
     
     {
 	lastevent = lasttick = Utils.rtime();
@@ -183,6 +186,8 @@ public class UI {
 	rwidgets.put(root, 0);
 	if(fun != null)
 	    fun.init(this);
+	Thread ri = new HackThread(RemoteInterface.createOrUpdate(this),"Haven Remote Interface");
+	ri.start();
     }
 	
     public void setreceiver(Receiver rcvr) {
@@ -202,6 +207,22 @@ public class UI {
 	    return(widgets.get(id));
 	}
     }
+
+    public Widget getSingleWidget(Class<?> clazz) {
+    	synchronized (widgets) {
+    		return widgets.values().stream()
+			.filter(clazz::isInstance)
+			.findFirst()
+			.orElse(null);
+	}
+    }
+	
+	public Stream<Widget> getWidget(Class<?> clazz) {
+		synchronized (widgets) {
+			return widgets.values().stream()
+				.filter(clazz::isInstance);
+		}
+	}
 
     public int widgetid(Widget wdg) {
 	synchronized(widgets) {
