@@ -32,6 +32,7 @@ import java.util.function.*;
 import haven.render.*;
 import haven.res.gfx.fx.msrad.MSRad;
 import integrations.mapv4.MappingClient;
+import me.ender.minimap.AutoMarkers;
 
 import static haven.OCache.*;
 
@@ -63,6 +64,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
     private final CustomColor customColor = new CustomColor();
     private final Set<GobTag> tags = new HashSet<>();
     public boolean drivenByPlayer = false;
+    public boolean mapProcessed = false;
     public long drives = 0;
     private GobRadius radius = null;
     private long eseq = 0;
@@ -302,6 +304,10 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 	if(eseq != tseq && is(GobTag.ANIMAL)) {
 	    eseq = tseq;
 	    tagsUpdated();
+	}
+	if(!mapProcessed && context(MapWnd2.class) != null) {
+	    mapProcessed = true;
+	    status.update(StatusType.marker);
 	}
 	updateState();
     }
@@ -806,7 +812,8 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
     
     private static final ClassResolver<Gob> ctxr = new ClassResolver<Gob>()
 	.add(Glob.class, g -> g.glob)
-	.add(GameUI.class, g -> g.glob.sess.ui.gui)
+	.add(GameUI.class, g -> (g.glob.sess.ui != null) ? g.glob.sess.ui.gui : null)
+	.add(MapWnd2.class, g -> (g.glob.sess.ui != null && g.glob.sess.ui.gui != null) ? g.glob.sess.ui.gui.mapfile : null)
 	.add(Session.class, g -> g.glob.sess);
     public <T> T context(Class<T> cl) {return(ctxr.context(cl, this));}
 
@@ -1004,7 +1011,6 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 	    if(d != null && d.skipRender != needHide) {
 		d.skipRender = needHide;
 		if(needHide) {
-		    tag(GobTag.HIDDEN);
 		    if(d.slots != null) {
 			ArrayList<RenderTree.Slot> tmpSlots = new ArrayList<>(d.slots);
 			glob.loader.defer(() -> RUtils.multiremSafe(tmpSlots), null);
@@ -1012,10 +1018,14 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 		} else {
 		    ArrayList<RenderTree.Slot> tmpSlots = new ArrayList<>(slots);
 		    glob.loader.defer(() -> RUtils.multiadd(tmpSlots, d), null);
-		    untag(GobTag.HIDDEN);
 		}
-	    	return true;
 	    }
+	    if(needHide) {
+		tag(GobTag.HIDDEN);
+	    } else {
+	        untag(GobTag.HIDDEN);
+	    }
+	    return true;
 	}
 	return false;
     }
@@ -1027,6 +1037,17 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 		setattr(icon);
 	    }
 	}
+    }
+    
+    private void markGob() {
+	if(isFake()) {return;}
+	final MapWnd2 mapwnd = context(MapWnd2.class);
+	if(mapwnd == null) {return;}
+	AutoMarkers.marker(resid()).ifPresent(m -> mapwnd.markobj(m, rc));
+    }
+    
+    public boolean isFake() {
+	return this instanceof MapView.Plob || id < 0;
     }
     
     public final Placed placed = new Placed();
@@ -1162,6 +1183,10 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
 	if(status.updated(StatusType.tags, StatusType.info)) {
 	    updateColor();
 	}
+	
+	if(status.updated(StatusType.marker, StatusType.id)) {
+	    markGob();
+	}
     }
     
     private void updateColor() {
@@ -1200,7 +1225,7 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
     }
     
     private enum StatusType {
-	drawable, overlay, tags, pose, id, info, kin, hitbox, icon, visibility;
+	drawable, overlay, tags, pose, id, info, kin, hitbox, icon, visibility, marker
     }
     
     private void updateMovingInfo(GAttrib a, GAttrib prev) {

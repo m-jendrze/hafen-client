@@ -40,6 +40,22 @@ public abstract class Dropbox<T> extends ListWidget<T> {
 	this.listh = listh;
 	dropc = new Coord(sz.x - drop.sz().x, 0);
     }
+    
+    @Override
+    public boolean mousewheel(Coord c, int amount) {
+	if(!super.mousewheel(c, amount)) {
+	    int count = listitems();
+	    if(count > 0) {
+		int n = find(sel) + ((int) Math.signum(amount));
+		while (n < 0) {n += count;}
+		change(listitem(n % count));
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+	return true;
+    }
 
     private class Droplist extends Listbox<T> {
 	private UI.Grab grab = null;

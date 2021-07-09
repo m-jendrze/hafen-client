@@ -1,3 +1,16 @@
+$size[14]{$u{Update for 05.07.21:}
+  * fixed trees sometimes have no hitboxes while hidden
+  * added tooltip to marker list for markers with long names
+ 
+$size[14]{$u{Update for 18.06.21:}
+  * added Marble to tile highlight
+  * added custom markers that auto-mark tarpits, cave entrances and exits, mineholes and ladders.
+  * Map Window: replaced buttons that change category and sorting with drop boxes.
+  * Map Window: fixed newly added marker not focusing.
+  * Map Window: fixed not being able to select marker by clicking on it on a map if it doesn't fit current category.
+  * Map Window: added $img[gfx/hud/mmap/marknames,c] button that toggles display of marker names.
+  * made dropboxes cycle selection when mouse wheel is scrolled over them .
+ 
 $size[14]{$u{Update for 14.06.21:}
   * merged loftar's changes
   * List inventory: move items highlighted for crafting into different group

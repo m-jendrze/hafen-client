@@ -1709,6 +1709,16 @@ public class Resource implements Serializable {
 	}
 	in.close();
     }
+    
+    public static Resource loadsaved(Resource.Pool pool, Resource.Spec spec) {
+	try {
+	    return (spec.get());
+	} catch (haven.Loading l) {
+	    throw (l);
+	} catch (Exception e) {
+	    return (pool.load(spec.name).get());
+	}
+    }
 
     public static void dumplist(Collection<Resource> list, Writer dest) {
 	PrintWriter out = new PrintWriter(dest);

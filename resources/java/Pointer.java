@@ -1,6 +1,7 @@
 import haven.*;
 import haven.render.BaseColor;
 import haven.render.Model;
+import me.ender.minimap.*;
 
 import java.awt.*;
 import java.util.Objects;
@@ -26,7 +27,7 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
     public Indir<Resource> icon;
     public Coord2d tc, mc;
     public Coord lc;
-    public MapFile.Marker marker;
+    public Marker marker;
     public long gobid = -1;
     public boolean click;
     private Tex licon;
@@ -40,14 +41,14 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 	this.icon = icon;
     }
     
-    public Pointer(MapFile.Marker marker) {
+    public Pointer(Marker marker) {
 	super(Coord.z);
 	this.marker = marker;
 	tip = marker.nm;
-	if(marker instanceof MapFile.PMarker) {
-	    col = new BaseColor(((MapFile.PMarker) marker).color);
-	} else if(marker instanceof MapFile.SMarker) {
-	    icon = ((MapFile.SMarker) marker).res;
+	if(marker instanceof PMarker) {
+	    col = new BaseColor(((PMarker) marker).color);
+	} else if(marker instanceof SMarker) {
+	    icon = ((SMarker) marker).res;
 	    col = colors[0];
 	} else if(marker instanceof MapWnd2.GobMarker) {
 	    MapWnd2.GobMarker gobMarker = (MapWnd2.GobMarker) marker;
@@ -57,8 +58,8 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
     }
     
     public static Widget mkwidget(UI ui, Object... args) {
-	if(args[0] instanceof MapFile.Marker) {
-	    return new Pointer((MapFile.Marker) args[0]);
+	if(args[0] instanceof Marker) {
+	    return new Pointer((Marker) args[0]);
 	}
 	int iconid = (Integer) args[0];
 	Indir<Resource> icon = (iconid < 0) ? null : ui.sess.getres(iconid);
@@ -206,7 +207,7 @@ public class Pointer extends Widget implements MiniMap.IPointer, DTarget {
 		}
 	    } else if(button == 3) {
 		if(ui.modctrl && marker != null) {
-		    if(ui.modmeta && marker instanceof MapFile.PMarker) {
+		    if(ui.modmeta && marker instanceof PMarker) {
 			ui.gui.mapfile.removeMarker(marker);
 		    } else {
 			ui.gui.untrack(marker);

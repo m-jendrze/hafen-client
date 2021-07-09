@@ -36,11 +36,9 @@ import java.util.stream.Collectors;
 
 import haven.MapFile.Segment;
 import haven.MapFile.DataGrid;
-import haven.MapFile.Grid;
 import haven.MapFile.GridInfo;
-import haven.MapFile.Marker;
-import haven.MapFile.PMarker;
-import haven.MapFile.SMarker;
+import me.ender.minimap.*;
+
 import static haven.MCache.cmaps;
 import static haven.MCache.tilesz;
 import static haven.OCache.posres;
@@ -321,7 +319,7 @@ public class MiniMap extends Widget {
 	public static final Resource.Image flagbg, flagfg;
 	public static final Coord flagcc;
 	public final Marker m;
-	public final Text tip;
+	public Text tip;
 	public Area hit;
 	private Resource.Image img;
 	private Coord imgsz;
@@ -334,14 +332,19 @@ public class MiniMap extends Widget {
 	    flagcc = UI.scale(flag.layer(Resource.negc).cc);
 	}
 
-	public DisplayMarker(Marker marker) {
+	public DisplayMarker(Marker marker, final UI ui) {
 	    this.m = marker;
-	    this.tip = Text.render(m.nm);
+	    checkTip(marker.tip(ui));
 	    if(marker instanceof PMarker)
 		this.hit = Area.sized(flagcc.inv(), UI.scale(flagbg.sz));
 	}
 
-	public void draw(GOut g, Coord c) {
+	public void draw(GOut g, Coord c, final float scale, final UI ui, final MapFile file, final boolean canShowName) {
+	    if(Config.always_true) {
+		checkTip(m.tip(ui));
+		if(visible()) {m.draw(g, c, canShowName ? tip : null, scale, file);}
+		return;
+	    }
 	    if(m instanceof PMarker) {
 		Coord ul = c.sub(flagcc);
 		g.chcolor(((PMarker)m).color);
@@ -366,6 +369,26 @@ public class MiniMap extends Widget {
 		if(img != null)
 		    g.image(img, c.sub(cc));
 	    }
+	}
+	
+	private void checkTip(final String nm) {
+	    if (tip == null || !tip.text.equals(nm)) {
+		tip = Text.renderstroked(nm, Color.WHITE, Color.BLACK);
+	    }
+	}
+	
+	private Area hit(final UI ui) {
+	    if (visible()) {
+		if(hit == null)
+		    hit = m.area();
+		return hit;
+	    } else {
+		return null;
+	    }
+	}
+    
+	private boolean visible() {
+	    return true;
 	}
     }
 
@@ -487,14 +510,14 @@ public class MiniMap extends Widget {
 
 	private Collection<DisplayMarker> markers = Collections.emptyList();
 	private int markerseq = -1;
-	public Collection<DisplayMarker> markers(boolean remark) {
+	public Collection<DisplayMarker> markers(boolean remark, final UI ui) {
 	    if(remark && (markerseq != file.markerseq)) {
 		if(file.lock.readLock().tryLock()) {
 		    try {
 			ArrayList<DisplayMarker> marks = new ArrayList<>();
 			for(Marker mark : file.markers) {
 			    if((mark.seg == this.seg.id) && mapext.contains(mark.tc))
-				marks.add(new DisplayMarker(mark));
+				marks.add(new DisplayMarker(mark, ui));
 			}
 			marks.trimToSize();
 			markers = (marks.size() == 0) ? Collections.emptyList() : marks;
@@ -580,10 +603,10 @@ public class MiniMap extends Widget {
 	    DisplayGrid dgrid = display[dgext.ri(c)];
 	    if(dgrid == null)
 		continue;
-	    for(DisplayMarker mark : dgrid.markers(true)) {
+	    for(DisplayMarker mark : dgrid.markers(true, ui)) {
 		if(filter(mark))
 		    continue;
-		mark.draw(g, mark.m.tc.sub(dloc.tc).div(scalef()).add(hsz));
+		mark.draw(g, mark.m.tc.sub(dloc.tc).div(scalef()).add(hsz), scale, ui, file, big);
 	    }
 	}
     }
@@ -748,7 +771,7 @@ public class MiniMap extends Widget {
 	for(DisplayGrid dgrid : display) {
 	    if(dgrid == null)
 		continue;
-	    for(DisplayMarker mark : dgrid.markers(false)) {
+	    for(DisplayMarker mark : dgrid.markers(false, ui)) {
 		if((mark.m instanceof SMarker) && (((SMarker)mark.m).oid == id))
 		    return(mark);
 	    }
@@ -760,8 +783,9 @@ public class MiniMap extends Widget {
 	for(DisplayGrid dgrid : display) {
 	    if(dgrid == null)
 		continue;
-	    for(DisplayMarker mark : dgrid.markers(false)) {
-		if((mark.hit != null) && mark.hit.contains(tc.sub(mark.m.tc).div(scalef())) && !filter(mark))
+	    for(DisplayMarker mark : dgrid.markers(false, ui)) {
+	        Area hit = mark.hit(ui);
+		if((hit != null) && hit.contains(tc.sub(mark.m.tc).div(scalef())) && !filter(mark))
 		    return(mark);
 	    }
 	}

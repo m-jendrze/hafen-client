@@ -30,7 +30,7 @@
 	<pathelement path="lib/gluegen-rt.jar" />
 	<pathelement path="lib/jnlp.jar" />
 	<pathelement path="lib/jglob.jar" />
-	<pathelement path="lib/gson-2.3.1.jar" />
+	<pathelement path="lib/gson-2.8.6.jar" />
         <pathelement path="lib/rxjava-1.1.5.jar" />
       </classpath>
       <compilerarg value="-Xlint:unchecked" />
@@ -68,7 +68,7 @@
     <unjar src="lib/jglob.jar" dest="build/classes-lib">
       <patternset excludes="META-INF/**" />
     </unjar>
-    <unjar src="lib/gson-2.3.1.jar" dest="build/classes-lib">
+    <unjar src="lib/gson-2.8.6.jar" dest="build/classes-lib">
       <patternset excludes="META-INF/**" />
     </unjar>
     <unjar src="lib/rxjava-1.1.5.jar" dest="build/classes-lib">
@@ -91,6 +91,7 @@
       <file file="etc/gob_path.json"/>
       <file file="etc/gob_radius.json"/>
       <file file="etc/autochoose.json"/>
+      <file file="etc/automark.json5"/>
       <file file="etc/tile_names.json"/>
       <file file="etc/tile_highlight.json"/>
       <fileset dir="." includes="i10n/**/**.json"/>

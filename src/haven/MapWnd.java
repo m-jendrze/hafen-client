@@ -34,11 +34,10 @@ import java.nio.channels.*;
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.image.*;
-import haven.MapFile.Marker;
-import haven.MapFile.PMarker;
-import haven.MapFile.SMarker;
 import haven.MiniMap.*;
 import haven.BuddyWnd.GroupSelector;
+import me.ender.minimap.*;
+
 import static haven.MCache.tilesz;
 import static haven.MCache.cmaps;
 import static haven.Utils.eq;
@@ -50,7 +49,7 @@ public class MapWnd extends WindowX implements Console.Directory {
     public final MapFile file;
     public final MiniMap view;
     public final MapView mv;
-    public final Toolbox tool;
+    public final Toolbox2 tool;
     public final Collection<String> overlays = new java.util.concurrent.CopyOnWriteArraySet<>();
     public MarkerConfig markcfg = MarkerConfig.showall, cmarkers = null;
     private final Locator player;
@@ -66,10 +65,11 @@ public class MapWnd extends WindowX implements Console.Directory {
     private int markerseq = -1;
     public boolean domark = false;
     private int olalpha = 64;
-    private final Collection<Runnable> deferred = new LinkedList<>();
+    protected final Collection<Runnable> deferred = new LinkedList<>();
 
     private final static Predicate<Marker> pmarkers = (m -> m instanceof PMarker);
     private final static Predicate<Marker> smarkers = (m -> m instanceof SMarker);
+    private final static Predicate<Marker> custmarkers = (m -> m instanceof CustomMarker);
     private final static Comparator<ListMarker> namecmp = ((a, b) -> a.mark.nm.compareTo(b.mark.nm));
     private final static Comparator<ListMarker> typecmp = Comparator.comparing((ListMarker lm) -> lm.type).thenComparing(namecmp);
 
@@ -148,9 +148,14 @@ public class MapWnd extends WindowX implements Console.Directory {
 	    .changed(a -> toggleol(TileHighlight.TAG, a))
 	    .rclick(() -> {TileHighlight.toggle(ui);})
 	    .settip("Left-click to toggle tile highlight\nRight-click to open settings", true);
+    
+	btn = topbar.add(new ICheckBox("gfx/hud/mmap/marknames", "", "-d", "-h"), btn.pos("ur"))
+	    .state(CFG.MMAP_SHOW_MARKER_NAMES::get)
+	    .set(CFG.MMAP_SHOW_MARKER_NAMES::set)
+	    .settip("Show marker names");
 	
 	topbar.pack();
-	tool = add(new Toolbox());;
+	tool = add(new Toolbox2());;
 	compact(Utils.getprefb("compact-map", false));
 	resize(sz);
     }
@@ -439,6 +444,9 @@ public class MapWnd extends WindowX implements Console.Directory {
 		return(types.intern(new PMarkerType(((PMarker)mark).color)));
 	    } else if(mark instanceof SMarker) {
 		return(types.intern(new SMarkerType(((SMarker)mark).res)));
+	    } else if(mark instanceof CustomMarker) {
+		CustomMarker cmark = (CustomMarker) mark;
+		return(types.intern(new CustomMarkerType(cmark.color, cmark.res)));
 	    } else {
 		return(null);
 	    }
@@ -541,6 +549,54 @@ public class MapWnd extends WindowX implements Console.Directory {
 	    return(super.compareTo(that));
 	}
     }
+    
+    public static class CustomMarkerType extends MarkerType {
+	private final Resource.Spec spec;
+	public final Color col;
+	private CustomMarker.Image icon = null;
+	
+	public CustomMarkerType(Color col, Resource.Spec spec) {
+	    this.col = col;
+	    this.spec = spec;
+	}
+	
+	public Tex icon() {
+	    if(icon == null) {
+		icon = CustomMarker.image(spec, col);
+	    }
+	    return icon != null ? icon.tex : null;
+	}
+	
+	public boolean equals(CustomMarkerType that) {
+	    return(Utils.eq(this.col, that.col) && Utils.eq(this.spec, that.spec));
+	}
+	public boolean equals(Object that) {
+	    return((that instanceof CustomMarkerType) && equals((CustomMarkerType)that));
+	}
+	
+	public int hashCode() {
+	    return Objects.hash(col.hashCode(), spec);
+	}
+	
+	public int compareTo(CustomMarkerType that) {
+	    int byRes = this.spec.name.compareTo(that.spec.name);
+	    if(byRes != 0) {return byRes;}
+	    
+	    int a = Utils.index(BuddyWnd.gc, this.col), b = Utils.index(BuddyWnd.gc, that.col);
+	    if((a >= 0) && (b >= 0))
+		return(a - b);
+	    if((a < 0) && (b >= 0))
+		return(1);
+	    if((a >= 0) && (b < 0))
+		return(-1);
+	    return(Utils.idcmp.compare(this.col, that.col));
+	}
+	public int compareTo(MarkerType that) {
+	    if(that instanceof CustomMarkerType)
+		return(compareTo((CustomMarkerType)that));
+	    return(super.compareTo(that));
+	}
+    }
 
     public static class MarkerConfig {
 	public static final MarkerConfig showall = new MarkerConfig();
@@ -616,7 +672,17 @@ public class MapWnd extends WindowX implements Console.Directory {
 	public ListMarker listitem(int idx) {return(markers.get(idx));}
 	public int listitems() {return(markers.size());}
 	public boolean searchmatch(int idx, String txt) {return(markers.get(idx).mark.nm.toLowerCase().indexOf(txt.toLowerCase()) >= 0);}
-
+    
+	@Override
+	protected Object itemtip(ListMarker item) {
+	    Tex nameTex = names.apply(item.mark.nm).tex();
+	    int namePos = UI.scale(10) + MarkerType.iconsz;
+	    if((nameTex.sz().x + namePos) > sb.c.x) {
+		return item.mark.nm;
+	    }
+	    return null;
+	}
+    
 	public MarkerList(int w, int n) {
 	    super(w, n, UI.scale(20));
 	}
@@ -665,7 +731,10 @@ public class MapWnd extends WindowX implements Console.Directory {
 
 	public void change2(ListMarker lm) {
 	    this.sel = lm;
-
+	    change3(lm != null ? lm.mark : null);
+	}
+	
+	public void change3(Marker mark) {
 	    if(tool.namesel != null) {
 		ui.destroy(tool.namesel);
 		tool.namesel = null;
@@ -683,8 +752,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 		}
 	    }
 
-	    if(lm != null) {
-		Marker mark = lm.mark;
+	    if(mark != null) {
 		if(tool.namesel == null) {
 		    tool.namesel = tool.add(new TextEntry(UI.scale(200), "") {
 			    {dshow = true;}
@@ -707,6 +775,14 @@ public class MapWnd extends WindowX implements Console.Directory {
 				view.file.update(mark);
 			    }
 			});
+		} else if(mark instanceof CustomMarker) {
+		    CustomMarker cm = (CustomMarker) mark;
+		    colsel = tool.add(new GroupSelector(Math.max(0, Utils.index(BuddyWnd.gc, cm.color))) {
+			public void changed(int group) {
+			    cm.color = BuddyWnd.gc[group];
+			    view.file.update(mark);
+			}
+		    });
 		}
 		mremove = tool.add(new Button(UI.scale(95), "Remove", false) {
 		    public void click() {
@@ -764,9 +840,11 @@ public class MapWnd extends WindowX implements Console.Directory {
 	    if(lm.mark == m) {
 		tool.list.change2(lm);
 		tool.list.display(lm);
-		break;
+		return;
 	    }
 	}
+	tool.list.change2(null);
+	tool.list.change3(m);
     }
 
     protected void drawframe(GOut g) {
@@ -1034,6 +1112,128 @@ public class MapWnd extends WindowX implements Console.Directory {
     
     public Location playerLocation() {
 	return view.sessloc;
+    }
+    
+    enum MarkerCategory {
+	placed("Placed", pmarkers), natural("Natural", smarkers), custom("Custom", custmarkers);
+	
+	private final String name;
+	private final Predicate<Marker> filter;
+	
+	MarkerCategory(String name, Predicate<Marker> filter) {
+	    this.name = name;
+	    this.filter = filter;
+	}
+    }
+    
+    enum MarkerSorting {
+	name("Name", namecmp), type("Type", typecmp);
+	
+	private final String label;
+	private final Comparator<ListMarker> comparator;
+	
+	MarkerSorting(String label, Comparator<ListMarker> cmp) {
+	    this.label = label;
+	    this.comparator = cmp;
+	}
+    }
+    
+    public class Toolbox2 extends Widget {
+	public final MarkerList list;
+	private final Frame listf;
+	private final Button mebtn, mibtn;
+	private final Dropbox<MarkerCategory> categories;
+	private final Dropbox<MarkerSorting> sorting;
+	private TextEntry namesel;
+	private final Coord cat_c = UI.scale(3, 8);
+	private final int sort_w = UI.scale(75);
+	
+	private Toolbox2() {
+	    super(UI.scale(200, 200));
+	    listf = add(new Frame(UI.scale(new Coord(200, 200)), false), 0, 0);
+	    list = listf.add(new MarkerList(listf.inner().x, 0), 0, 0);
+	    
+	    categories = add(new Dropbox<MarkerCategory>(UI.scale(100), MarkerCategory.values().length, UI.scale(16)) {
+		@Override
+		protected MarkerCategory listitem(int i) {
+		    return MarkerCategory.values()[i];
+		}
+		
+		@Override
+		protected int listitems() {
+		    return MarkerCategory.values().length;
+		}
+		
+		@Override
+		protected void drawitem(GOut g, MarkerCategory item, int i) {
+		    g.atext(item.name, cat_c, 0, 0.5);
+		}
+		
+		@Override
+		public void change(MarkerCategory item) {
+		    super.change(item);
+		    mflt = item.filter;
+		    markerseq = -1;
+		}
+	    });
+	    categories.change(MarkerCategory.placed);
+	    
+	    sorting = add(new Dropbox<MarkerSorting>(sort_w, MarkerSorting.values().length, UI.scale(16)) {
+		@Override
+		protected MarkerSorting listitem(int i) {
+		    return MarkerSorting.values()[i];
+		}
+		
+		@Override
+		protected int listitems() {
+		    return MarkerSorting.values().length;
+		}
+		
+		@Override
+		protected void drawitem(GOut g, MarkerSorting item, int i) {
+		    g.atext(item.label, cat_c, 0, 0.5);
+		}
+		
+		@Override
+		public void change(MarkerSorting item) {
+		    super.change(item);
+		    mcmp = item.comparator;
+		    markerseq = -1;
+		}
+	    });
+	    sorting.change(MarkerSorting.name);
+	    
+	    mebtn = add(new Button(btnw, "Export...", false) {
+		public void click() {
+		    exportmap();
+		}
+	    });
+	    mibtn = add(new Button(btnw, "Import...", false) {
+		public void click() {
+		    importmap();
+		}
+	    });
+	}
+	
+	public void resize(int h) {
+	    super.resize(new Coord(sz.x, h));
+	    categories.c = new Coord(UI.scale(3), 0);
+	    sorting.c = new Coord(sz.x - sort_w - UI.scale(3), 0);
+	    listf.resize(listf.sz.x, sz.y - UI.scale(150));
+	    listf.c = new Coord(sz.x - listf.sz.x, categories.sz.y + UI.scale(3));
+	    list.resize(listf.inner());
+	    mebtn.c = new Coord(0, sz.y - mebtn.sz.y - UI.scale(5));
+	    mibtn.c = new Coord(sz.x - btnw, sz.y - mibtn.sz.y - UI.scale(5));
+	    if(namesel != null) {
+		namesel.c = listf.c.add(0, listf.sz.y + UI.scale(10));
+		if(colsel != null) {
+		    colsel.c = namesel.c.add(0, namesel.sz.y + UI.scale(10));
+		}
+		int y = namesel.sz.y + BuddyWnd.margin3 + UI.scale(20);
+		mremove.c = namesel.c.add(0, y);
+		mtrack.c = namesel.c.add(UI.scale(105), y);
+	    }
+	}
     }
     
     private Map<String, Console.Command> cmdmap = new TreeMap<String, Console.Command>();

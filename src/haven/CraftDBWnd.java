@@ -538,10 +538,14 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 		}
 		return true;
 	    case KeyEvent.VK_DOWN:
-		select(box.listitem((box.selindex + 1) % box.listitems()), true, true);
+		if(box.listitems() > 0) {
+		    select(box.listitem((box.selindex + 1) % box.listitems()), true, true);
+		}
 		return true;
 	    case KeyEvent.VK_UP:
-		select(box.listitem((Math.max(box.selindex, 0) - 1 + box.listitems()) % box.listitems()), true, true);
+		if(box.listitems() > 0) {
+		    select(box.listitem((Math.max(box.selindex, 0) - 1 + box.listitems()) % box.listitems()), true, true);
+		}
 		return true;
 	    case KeyEvent.VK_ENTER:
 		if(box.sel != null) {
