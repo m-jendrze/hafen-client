@@ -50,6 +50,7 @@ public enum Action {
     INIT_STALL_INSPECTOR(Bot::initializeStall, "Initialize Stall inspector", "Inspects closest stall and send data to server."),
     GET_STALLS(Bot::getAllStalls, "Get all stalls", "Inspects closest stall and send data to server."),
     TEST(Bot::test, "Get all stalls", "Inspects closest stall and send data to server."),
+    PLAY(Bot::play, "Play song", "test."),
     
     CLEAR_PLAYER_DAMAGE(GobDamageInfo::clearPlayerDamage, "Clear damage from player"),
     CLEAR_ALL_DAMAGE(GobDamageInfo::clearAllDamage, "Clear damage from everyone");

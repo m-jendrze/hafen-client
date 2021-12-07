@@ -33,7 +33,7 @@ import javax.sound.sampled.*;
 import dolda.xiphutil.*;
 
 public class Audio {
-    public static boolean enabled = true;
+    public static boolean enabled = !Config.headless;
     private static Player player;
     public static final AudioFormat fmt = new AudioFormat(44100, 16, 2, true, false);
     public static int bufsize = CFG.AUDIO_BUFFER.get();

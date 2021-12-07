@@ -12,13 +12,14 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 public class Integration {
     
-    private static final boolean local = true;
+    private static final boolean local = false;
     private static final boolean upload = true;
-    private static final String MARKET = "Finloch Market";
+    private static final String MARKET = "Linch Market";
     private static final String SERVER_URL = local ? "http://localhost:5000" : "https://hnh-market.junespark.net";
     private static final String ADD_STALLS = SERVER_URL + "/api/stalls/add";
     private static final String INITIALIZE_STALLS = SERVER_URL + "/api/stalls/init";

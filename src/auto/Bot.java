@@ -136,6 +136,45 @@ public class Bot implements Defer.Callable<Void> {
         start(new Bot(targets, Target::rclick, selectFlower(option)), gui.ui);
     }
     
+    public static void play(GameUI gui) {
+        start(new Bot(null, playAction(gui)), gui.ui);
+    }
+    
+    private static BotAction playAction(GameUI gui) {
+        return reference -> {
+            WItem slot = gui.equipory.slots[Equipory.SLOTS.HAND_LEFT.idx];
+            gui.ui.wdgmsg(slot.item, "iact", new Coord(), 0);
+            pause(100);
+            JBot jBot = JBot.createJBot(gui.ui);
+            jBot.play(String.join("", List.of(
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3..",
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3..",
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3..",
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3..",
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3..",
+                "F2....G2#/D3#....E2#..G2#/D3#..F2..A2#/D3..",
+                "F2....A2#/D3....F2....A2#/D3..D3#..",
+                "D2#....A2#/D3#....D2#....A2#/D3#..A2#/C3..",
+                "G1#....C3..A2#..G1..C3..A2#..C3.."
+            )));
+        };
+    }
+    
     public static void drink(GameUI gui) {
         Collection<Supplier<List<WItem>>> everywhere = Arrays.asList(HANDS(gui), INVENTORY(gui), BELT(gui));
         Utils.chainOptionals(
@@ -199,20 +238,20 @@ public class Bot implements Defer.Callable<Void> {
             .ifPresentOrElse(
                 (e) -> {
                     si.initializeVC(gui, e.gob.rc);
-                    start(new Bot(vc, testAction(gui)), gui.ui);
+                    start(new Bot(vc, remotePathingAction(gui)), gui.ui);
                 },
                 () -> msg(gui, "Need Village Claim in range to initialize"));
         ;
     }
     
-    private static BotAction testAction(GameUI gui) {
+    private static BotAction remotePathingAction(GameUI gui) {
         return reference -> {
-            JBot jBot = new JBot(gui.ui);
+            JBot jBot = JBot.createJBot(gui.ui);
             final StallInspector si = gui.ui.stallInspector;
             jBot.remotePathing(reference.gob, (jt) -> {
                 jt.gob.rclick();
                 waitFinish(si::openedStall);
-                pause(1500);
+                pause(200);
                 try {
                     si.analyzeStall(jt.getGameCoord());
                 } catch (Throwable t) {
@@ -291,7 +330,7 @@ public class Bot implements Defer.Callable<Void> {
         boolean ready = false;
         while (!ready) {
             ready = finished.get();
-            pause(100);
+            pause(50);
         }
     }
     
