@@ -305,6 +305,7 @@ public class CharWnd extends WindowX {
 	    public double a;
 	    private Tex tt, at;
 	    private BufferedImage tip;
+	    private String name;
 	    private boolean hl;
 
 	    public El(ResData t, double a) {this.t = t; this.a = a;}
@@ -327,14 +328,17 @@ public class CharWnd extends WindowX {
 		    g.drawImage(rnm.img, elh + 5, ((elh - rnm.sz().y) / 2) + 1, null);
 		    g.dispose();
 		    tt = new TexI(buf);
+		    name = nm;
 		}
 		return(tt);
 	    }
+	    
+	    String tip() {return name != null ? String.format("%s %d%%", name, ((int) (100 * (1 - a)))) : null;}
 
 	    public Tex at() {
 		if(at == null) {
 		    Color c= color(a);
-		    at = elf.render(String.format("%d%%", (int)Math.ceil((1.0 - a) * 100)), c).tex();
+		    at = elf.render(String.format("%d%%", Math.max((int)Math.round((1.0 - a) * 100), 1)), c).tex();
 		}
 		return(at);
 	    }
@@ -410,7 +414,12 @@ public class CharWnd extends WindowX {
 		    }
 		});
 	}
-
+    
+	@Override
+	protected Object itemtip(El item) {
+	    return item.tip();
+	}
+    
 	public void update(ResData t, double a) {
 	    prev: {
 		for(Iterator<El> i = els.iterator(); i.hasNext();) {
@@ -441,7 +450,7 @@ public class CharWnd extends WindowX {
 	public final Color bg;
 	public final Resource res;
 	private double lvlt = 0.0;
-	private Text ct;
+	private Text ct, bt;
 	private int cbv = -1, ccv = -1;
 
 	private Attr(Glob glob, String attr, Color bg) {
@@ -458,6 +467,7 @@ public class CharWnd extends WindowX {
 	    if((attr.base != cbv) || (attr.comp != ccv)) {
 		cbv = attr.base; ccv = attr.comp;
 		Color c = Color.WHITE;
+		bt = attrf.render(String.format("(%d)", cbv), c);
 		if(ccv > cbv) {
 		    c = buff;
 		    tooltip = Text.render(String.format("%d + %d", cbv, ccv - cbv));
@@ -483,7 +493,10 @@ public class CharWnd extends WindowX {
 	    Coord cn = new Coord(0, sz.y / 2);
 	    g.aimage(img, cn.add(5, 0), 0, 0.5);
 	    g.aimage(rnm.tex(), cn.add(img.sz().x + margin2, 1), 0, 0.5);
-	    g.aimage(ct.tex(), cn.add(sz.x - UI.scale(7), 1), 1, 0.5);
+	    if(ct != null)
+		g.aimage(ct.tex(), cn.add(sz.x - UI.scale(7), 1), 1, 0.5);
+	    if(bt != null)
+	        g.aimage(bt.tex(), cn.add(sz.x - UI.scale(7), 1), 2, 0.5);
 	}
 
 	public void lvlup() {

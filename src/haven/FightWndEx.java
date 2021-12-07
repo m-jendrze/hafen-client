@@ -561,7 +561,7 @@ public class FightWndEx extends Widget {
     public class Savelist extends Dropbox<Integer> {
 	private int edit = -1;
 	private Text.Line redit = null;
-	private LineEdit nmed;
+	private ReadLine nmed;
 	private long focusstart;
 
 	public Savelist(int w, int h) {
@@ -576,15 +576,17 @@ public class FightWndEx extends Widget {
 	    FightWndEx.this.accept.show();
 	    FightWndEx.this.cancel.show();
 	    edit = sel;
-	    nmed = new LineEdit(saves[sel].text) {
-		protected void done(String line) {
-		    saveName();
-		}
-
-		protected void changed() {
+	    nmed = ReadLine.make(new ReadLine.Owner() {
+		@Override
+		public void changed(ReadLine buf) {
 		    redit = null;
 		}
-	    };
+		
+		@Override
+		public void done(ReadLine buf) {
+		    saveName();
+		}
+	    }, saves[sel].text);
 	    redit = null;
 	    parent.setfocus(this);
 	    focusstart = System.currentTimeMillis();
@@ -596,7 +598,7 @@ public class FightWndEx extends Widget {
 
 	public void saveName() {
 	    if(nmed != null && edit != -1) {
-		saves[edit] = attrf.render(nmed.line);
+		saves[edit] = attrf.render(nmed.line());
 		int tmp = edit;
 		cancel();
 		save(tmp);
@@ -621,10 +623,10 @@ public class FightWndEx extends Widget {
 	protected void drawitem(GOut g, Integer save, int n) {
 	    if(edit == save) {
 		if(redit == null)
-		    redit = attrf.render(nmed.line);
+		    redit = attrf.render(nmed.line());
 		g.aimage(redit.tex(), new Coord(3, itemh / 2), 0.0, 0.5);
 		if(hasfocus && (((System.currentTimeMillis() - focusstart) % 1000) < 500)) {
-		    int cx = redit.advance(nmed.point);
+		    int cx = redit.advance(nmed.point());
 		    g.chcolor(255, 255, 255, 255);
 		    Coord co = new Coord(3 + cx + 1, (g.sz().y - redit.sz().y) / 2);
 		    g.line(co, co.add(0, redit.sz().y), 1);

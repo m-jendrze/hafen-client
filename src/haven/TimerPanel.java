@@ -96,7 +96,7 @@ public class TimerPanel extends WindowX {
 		textEntry.settext("");
 	    } else {
 		try {
-		    textEntry.settext(String.format("%02d", Integer.parseInt(textEntry.text)));
+		    textEntry.settext(String.format("%02d", Integer.parseInt(textEntry.text())));
 		} catch (NumberFormatException ignored) {
 		    textEntry.settext("00");
 		}
@@ -108,10 +108,10 @@ public class TimerPanel extends WindowX {
 	    if(sender == btnadd) {
 		
 		long time = 0;
-		try { time += Integer.parseInt(seconds.text);} catch (NumberFormatException ignored) {}
-		try {time += Integer.parseInt(minutes.text) * 60;} catch (NumberFormatException ignored) {}
-		try {time += Integer.parseInt(hours.text) * 3600;} catch (NumberFormatException ignored) {}
-		panel.add(new TimerWdg(Timer.add(name.text, 1000 * time)));
+		try { time += Integer.parseInt(seconds.text());} catch (NumberFormatException ignored) {}
+		try {time += Integer.parseInt(minutes.text()) * 60;} catch (NumberFormatException ignored) {}
+		try {time += Integer.parseInt(hours.text()) * 3600;} catch (NumberFormatException ignored) {}
+		panel.add(new TimerWdg(Timer.add(name.text(), 1000 * time)));
 		panel.pack();
 		ui.destroy(this);
 	    } else {

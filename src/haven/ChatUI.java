@@ -676,14 +676,14 @@ public class ChatUI extends Widget {
 		    }
 
 		    public boolean keydown(KeyEvent ev) {
-			if(ev.getKeyCode() == KeyEvent.VK_UP) {
+			if(ConsoleHost.kb_histprev.key().match(ev)) {
 			    if(hpos > 0) {
 				if(hpos == history.size())
-				    hcurrent = text;
+				    hcurrent = text();
 				rsettext(history.get(--hpos));
 			    }
 			    return(true);
-			} else if(ev.getKeyCode() == KeyEvent.VK_DOWN) {
+			} else if(ConsoleHost.kb_histnext.key().match(ev)) {
 			    if(hpos < history.size()) {
 				if(++hpos == history.size())
 				    rsettext(hcurrent);
@@ -1210,15 +1210,23 @@ public class ChatUI extends Widget {
     public void drawsmall(GOut g, Coord br, int h) {
 	Coord c;
 	if(qline != null) {
-	    if((rqline == null) || !rqline.text.equals(qline.line)) {
+	    if((rqline == null) || !qline.buf.lneq(rqline.text)) {
 		String pre = String.format("%s> ", qline.chan.name());
-		rqline = qfnd.render(pre + qline.line);
+		rqline = qfnd.render(pre + qline.buf.line());
 		rqpre = pre.length();
+	    }
+	    int point = qline.buf.point(), mark = qline.buf.mark();
+	    int px = rqline.advance(point + rqpre) + UI.scale(1);
+	    if(mark >= 0) {
+		int mx = rqline.advance(mark + rqpre) + UI.scale(1);
+		g.chcolor(TextEntry.selcol);
+		g.frect2(Coord.of(br.x + Math.min(px, mx), br.y - UI.scale(18)),
+			 Coord.of(br.x + Math.max(px, mx), br.y - UI.scale(6)));
+		g.chcolor();
 	    }
 	    c = br.sub(UI.scale(0, 20));
 	    g.image(rqline.tex(), c);
-	    int lx = rqline.advance(qline.point + rqpre) + UI.scale(1);
-	    g.line(new Coord(br.x + lx, br.y - UI.scale(18)), new Coord(br.x + lx, br.y - UI.scale(6)), 1);
+	    g.line(Coord.of(br.x + px, br.y - UI.scale(18)), Coord.of(br.x + px, br.y - UI.scale(6)), 1);
 	} else {
 	    c = br.sub(UI.scale(0, 5));
 	}
@@ -1315,10 +1323,12 @@ public class ChatUI extends Widget {
 	    sresize(savedh);
     }
 
-    private class QuickLine extends LineEdit {
+    private class QuickLine implements ReadLine.Owner {
+	public final ReadLine buf;
 	public final EntryChannel chan;
 	
 	private QuickLine(EntryChannel chan) {
+	    this.buf = ReadLine.make(this, "");
 	    this.chan = chan;
 	}
 	
@@ -1327,19 +1337,19 @@ public class ChatUI extends Widget {
 	    qgrab.remove();
 	}
 	
-	protected void done(String line) {
-	    if(line.length() > 0)
-		chan.send(line);
+	public void done(ReadLine buf) {
+	    if(!buf.empty())
+		chan.send(buf.line());
 	    cancel();
 	}
 
-	public boolean key(char c, int code, int mod) {
-	    if(c == 27) {
+	public boolean key(KeyEvent ev) {
+	    if(key_esc.match(ev)) {
 		cancel();
+		return(true);
 	    } else {
-		return(super.key(c, code, mod));
+		return(buf.key(ev));
 	    }
-	    return(true);
 	}
     }
 

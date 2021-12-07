@@ -205,7 +205,7 @@ public class TileHighlight {
 	    @Override
 	    protected void filter() {
 		super.filter();
-		updateFilter(this.filter.line);
+		updateFilter(this.filter.line());
 	    }
 	    
 	    @Override

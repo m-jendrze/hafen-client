@@ -6,9 +6,7 @@
     <JAVADOC>
       <root url="jar://$PROJECT_DIR$/lib/rxjava-1.1.5-javadoc.jar!/" />
     </JAVADOC>
-    <SOURCES>
-      <root url="jar://$USER_HOME$/.ideaLibSources/rxjava-1.1.5-sources.jar!/" />
-    </SOURCES>
+    <SOURCES />
     <jarDirectory url="file://$PROJECT_DIR$/lib" recursive="false" />
   </library>
 </component>

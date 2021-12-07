@@ -765,7 +765,7 @@ public class MapWnd extends WindowX implements Console.Directory {
 			});
 		}
 		tool.namesel.settext(mark.nm);
-		tool.namesel.buf.point = mark.nm.length();
+		tool.namesel.buf.point(mark.nm.length());
 		tool.namesel.commit();
 		if(mark instanceof PMarker) {
 		    PMarker pm = (PMarker)mark;

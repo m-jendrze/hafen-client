@@ -27,8 +27,8 @@ public class TravelWnd extends WindowX {
 	btn = add(new Button(W, "Travel!", () -> {
 	    if(ls.sel != null)
 		TravelWnd.this.wdgmsg("act", ls.sel.text);
-	    else if(txt.text.length() > 0)
-		TravelWnd.this.wdgmsg("act", txt.text);
+	    else if(txt.text().length() > 0)
+		TravelWnd.this.wdgmsg("act", txt.text());
 	}), ls.pos("bl").adds(0, 10));
 	pack();
     }

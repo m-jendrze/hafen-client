@@ -7,8 +7,6 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.*;
 
-import static haven.Utils.setpref;
-
 public class AccountList extends Widget {
     public static final String ACCOUNTS_JSON = "accounts.json";
     public static final Map<String, String> accountmap = new HashMap<>();
@@ -56,7 +54,31 @@ public class AccountList extends Widget {
 	    Config.saveFile(ACCOUNTS_JSON, gson.toJson(accountmap));
 	}
     }
-
+    
+    //TODO: find how to incorporate hostname without breaking stuff
+    public static byte[] getToken(String user, String hostname) {
+	synchronized (accountmap) {
+	    String token = accountmap.get(user);
+	    if(token == null){
+		return null;
+	    } else {
+		return Utils.hex2byte(token);
+	    }
+	}
+    }
+    
+    public static void setToken(String user, String hostname, byte[] token) {
+	if(token == null) {
+	    removeToken(user, hostname);
+	} else {
+	    storeAccount(user, Utils.byte2hex(token));
+	}
+    }
+    
+    public static void removeToken(String user, String hostname) {
+	removeAccount(user);
+    }
+    
     public static class Account {
 	public String name, token;
 	Button plb, del;

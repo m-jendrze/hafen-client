@@ -25,7 +25,7 @@ public class FilterWnd extends GameUI.Hidewnd {
     @Override
     public boolean keydown(KeyEvent ev) {
 	if(ev.getKeyCode() == KeyEvent.VK_ESCAPE) {
-	    if(input.text.length() > 0) {
+	    if(input.text().length() > 0) {
 		input.settext("");
 		return true;
 	    }
@@ -53,8 +53,9 @@ public class FilterWnd extends GameUI.Hidewnd {
     }
     
     private void checkInput() {
-	if (input.text.length() >= 2) {
-	    setFilter(input.text);
+	String text = input.text();
+	if (text.length() >= 2) {
+	    setFilter(text);
 	} else {
 	    setFilter(null);
 	}

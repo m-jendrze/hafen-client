@@ -207,7 +207,6 @@ public class Buff extends Widget implements ItemInfo.ResOwner, Bufflist.Managed 
 	if(prev != this)
 	    hoverstart = now;
 	try {
-	    List<ItemInfo> info = info();
 	    if(now - hoverstart < 1.0) {
 		if(shorttip == null)
 		    shorttip = new TexI(shorttip());

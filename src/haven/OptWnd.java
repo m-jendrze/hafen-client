@@ -877,7 +877,7 @@ public class OptWnd extends WindowX {
 	panel.add(new Button(UI.scale(85), "Add") {
 	    @Override
 	    public void click() {
-		list.add(value.text);
+		list.add(value.text());
 		value.settext("");
 	    }
 	}, x + UI.scale(165), y - UI.scale(2));
@@ -950,6 +950,9 @@ public class OptWnd extends WindowX {
     
 	y += STEP;
 	panel.add(new CFGBox("Flat cupboards (needs restart)", CFG.FLAT_CUPBOARDS, "Makes cupboards look like floor hatches", true), x, y);
+
+	y += STEP;
+	panel.add(new CFGBox("Display container fullness", CFG.SHOW_CONTAINER_FULLNESS, "Makes containers tint different colors when they are empty or full", true), x, y);
     
 	y += STEP;
 	tx = panel.add(new CFGBox("Draw paths", CFG.DISPLAY_GOB_PATHS, "Draws lines where objects are moving", true), x, y).sz.x;
@@ -1220,7 +1223,7 @@ public class OptWnd extends WindowX {
 	    public boolean keydown(KeyEvent ev) {
 		if(!parent.visible)
 		    return false;
-		CFG.AUTOMAP_ENDPOINT.set(text);
+		CFG.AUTOMAP_ENDPOINT.set(text());
 		return buf.key(ev);
 	    }
 	}, x, y);

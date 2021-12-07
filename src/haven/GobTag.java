@@ -1,5 +1,7 @@
 package haven;
 
+import me.ender.ContainerInfo;
+
 import java.util.*;
 
 public enum GobTag {
@@ -18,8 +20,10 @@ public enum GobTag {
     GEM,
     VEHICLE, PUSHED, //vehicle that is pushed (wheelbarrow, plow)
     
+    CONTAINER, DRACK,
+    
     PLAYER, ME, FRIEND, FOE,
-    KO, DEAD, EMPTY, READY,
+    KO, DEAD, EMPTY, READY, FULL,
     
     MENU, PICKUP, HIDDEN;
     
@@ -61,6 +65,7 @@ public enum GobTag {
         Equipory equipory = gui != null ? gui.equipory : null;
         
         String name = gob.resid();
+        int sdt = gob.sdt();
         if(name != null) {
             List<String> ols = Collections.emptyList();
             synchronized (gob.ols) {
@@ -126,6 +131,7 @@ public enum GobTag {
                     }
                 }
             } else if(name.endsWith("/dframe")) {
+                tags.add(DRACK);
                 boolean empty = ols.isEmpty();
                 boolean done = !empty && ols.stream().noneMatch(GobTag::isDrying);
                 if(empty) { tags.add(EMPTY); }
@@ -147,12 +153,21 @@ public enum GobTag {
                 tags.add(MENU);
             }
     
+            ContainerInfo.get(name).ifPresent(container -> {
+                tags.add(CONTAINER);
+                if(container.isFull(sdt)) {
+                    tags.add(FULL);
+                } else if(container.isEmpty(sdt)) {
+                    tags.add(EMPTY);
+                }
+            });
+    
             Drawable d = gob.drawable;
             if(d != null) {
                 if(d.hasPose("/knock")) {
                     tags.add(KO);
                 }
-                if(d.hasPose("/dead")) {
+                if(d.hasPose("/dead") || d.hasPose("/waterdead")) {
                     tags.add(DEAD);
                 }
             }

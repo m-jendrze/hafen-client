@@ -81,7 +81,7 @@ public class GobIconSettings extends WindowX {
 	protected void filter() {
 	    super.filter();
 	    reorder = true;
-	    updateFilter(filter.line);
+	    updateFilter(filter.line());
 	    updateAllCheckbox();
 	}
     

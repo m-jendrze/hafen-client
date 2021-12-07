@@ -1,3 +1,15 @@
+$size[14]{$u{Update for 04.11.21:}
+  * merged loftar's changes
+  * added tooltips to food satiations
+  * added server status to login screen
+ 
+$size[14]{$u{Update for 19.07.21:}
+  * merged loftar's changes
+  * added option to tint containers based on how full they are (Options->Display->Display container fullness)
+  * added display of base attribute value to character sheet (surculus12)
+  * added display of LP/H/Weight to curios when LP/H display is turned on (surculus12)
+  * added display of extra FEP-related info to food tooltips (surculus12)
+ 
 $size[14]{$u{Update for 05.07.21:}
   * fixed trees sometimes have no hitboxes while hidden
   * added tooltip to marker list for markers with long names

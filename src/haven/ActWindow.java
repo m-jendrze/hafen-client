@@ -102,7 +102,7 @@ public class ActWindow extends GameUI.Hidewnd {
 
     private void filter() {
 	needfilter = false;
-	String filter = this.filter.text.toLowerCase();
+	String filter = this.filter.text().toLowerCase();
 	synchronized (all) {
 	    filtered.clear();
 	    ItemFilter itemFilter = ItemFilter.create(filter);

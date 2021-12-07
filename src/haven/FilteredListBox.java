@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 public abstract class FilteredListBox<T> extends Listbox<T> {
     
     private boolean needfilter = false;
-    protected final LineEdit filter = new LineEdit();
+    protected final ReadLine filter = ReadLine.make(null, "");
     protected List<T> items = new LinkedList<>();
     protected List<T> filtered = new LinkedList<>();
     protected boolean showFilterText = true;
@@ -39,15 +39,15 @@ public abstract class FilteredListBox<T> extends Listbox<T> {
 	    return false;
 	}
 	if(ev.getKeyCode() == KeyEvent.VK_ESCAPE) {
-	    if(!filter.line.isEmpty()) {
+	    if(!filter.line().isEmpty()) {
 		filter.setline("");
 		needfilter();
 		return true;
 	    }
 	}
 	
-	String before = filter.line;
-	if(filter.key(ev) && !before.equals(filter.line)) {
+	String before = filter.line();
+	if(filter.key(ev) && !before.equals(filter.line())) {
 	    needfilter();
 	    return true;
 	}
@@ -81,13 +81,13 @@ public abstract class FilteredListBox<T> extends Listbox<T> {
     @Override
     public void draw(GOut g) {
 	super.draw(g);
-	if(showFilterText && !filter.line.isEmpty()) {
-	    g.atext(filter.line, g.sz(), 1, 1);
+	if(showFilterText && !filter.line().isEmpty()) {
+	    g.atext(filter.line(), g.sz(), 1, 1);
 	}
     }
     
     protected void filter() {
-	filtered = items.stream().filter(t -> match(t, filter.line)).collect(Collectors.toList());
+	filtered = items.stream().filter(t -> match(t, filter.line())).collect(Collectors.toList());
 	needfilter = false;
     }
     

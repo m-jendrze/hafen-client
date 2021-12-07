@@ -48,7 +48,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
     private final Pattern category = Pattern.compile("paginae/craft/.+");
     private int pagseq = 0;
     private boolean needfilter = false;
-    private final LineEdit filter = new LineEdit();
+    private final ReadLine filter = ReadLine.make(null, "");
     private Mode mode = All;
     
     static {
@@ -150,7 +150,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 			}
 			item = menu.getParent(item);
 		    }
-		    if((mode.reparent && filter.line.isEmpty()) || !item.isAction()) {
+		    if((mode.reparent && filter.line().isEmpty()) || !item.isAction()) {
 			menu.use(item, false);
 		    } else {
 			select(item, true, true);
@@ -302,7 +302,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 
     public void select(Pagina p, boolean use) {
 	if(mode != All) {changeMode(All);}
-	if(!filter.line.isEmpty()) {
+	if(!filter.line().isEmpty()) {
 	    filter.setline("");
 	    changeMode(All);
 	    if(p == ui.gui.menu.bk.pag) {
@@ -392,7 +392,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 
     private void updateBreadcrumbs(Pagina p) {
 	List<Breadcrumbs.Crumb<Pagina>> crumbs = new LinkedList<>();
-	if (filter.line.isEmpty()) {
+	if (filter.line().isEmpty()) {
 	    if(mode == All) {
 		List<Pagina> parents = getParents(p);
 		Collections.reverse(parents);
@@ -411,7 +411,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 	} else {
 	    crumbs.add(Breadcrumbs.Crumb.fromPagina(paginafor(mode.res)));
 	    BufferedImage img = Resource.remote().loadwait("paginae/act/inspect").layer(Resource.imgc).img;
-	    crumbs.add(new Breadcrumbs.Crumb<>(img, filter.line, CRAFT));
+	    crumbs.add(new Breadcrumbs.Crumb<>(img, filter.line(), CRAFT));
 	}
 	breadcrumbs.setCrumbs(crumbs);
     }
@@ -497,7 +497,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
     
     private void filter() {
 	needfilter = false;
-	String filter = this.filter.line.toLowerCase();
+	String filter = this.filter.line().toLowerCase();
 	if (filter.isEmpty()) {
 	    return;
 	}
@@ -531,7 +531,7 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 	}
 	switch (ev.getKeyCode()) {
 	    case KeyEvent.VK_ESCAPE:
-		if(!filter.line.isEmpty()) {
+		if(!filter.line().isEmpty()) {
 		    changeMode(mode);
 		} else {
 		    close();
@@ -558,10 +558,10 @@ public class CraftDBWnd extends WindowX implements DTarget2 {
 		return true;
 	}
  
-	String before = filter.line;
-	if(filter.key(ev) && !before.equals(filter.line)) {
+	String before = filter.line();
+	if(filter.key(ev) && !before.equals(filter.line())) {
 	    needfilter();
-	    if(filter.line.isEmpty()) {
+	    if(filter.line().isEmpty()) {
 		changeMode(mode);
 	    }
 	}

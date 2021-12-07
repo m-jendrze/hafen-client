@@ -38,7 +38,8 @@ import static haven.OCache.*;
 
 public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Skeleton.HasPose {
     private static final Color COL_READY = new Color(16, 255, 16, 128);
-    private static final Color COL_EMPTY = new Color(64, 200, 250, 64);
+    private static final Color COL_FULL = new Color(215, 63, 250, 64);
+    private static final Color COL_EMPTY = new Color(104, 213, 253, 64);
     public Coord2d rc;
     public double a;
     public boolean virtual = false;
@@ -1192,10 +1193,19 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Sk
     private void updateColor() {
 	Color c = null;
 	if(CFG.DISPLAY_GOB_INFO.get()) {
-	    if(is(GobTag.EMPTY)) {
-		c = COL_EMPTY;
-	    } else if(is(GobTag.READY)) {
-		c = COL_READY;
+	    if(is(GobTag.DRACK)) {
+		if(is(GobTag.EMPTY)) {
+		    c = COL_EMPTY;
+		} else if(is(GobTag.READY)) {
+		    c = COL_READY;
+		}
+	    }
+	    if(CFG.SHOW_CONTAINER_FULLNESS.get() && is(GobTag.CONTAINER)) {
+		if(is(GobTag.EMPTY)) {
+		    c = COL_EMPTY;
+		} else if(is(GobTag.FULL)) {
+		    c = COL_FULL;
+		}
 	    }
 	}
 	if(customColor.color(c)) {updstate();}

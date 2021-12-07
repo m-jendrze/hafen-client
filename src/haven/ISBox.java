@@ -176,7 +176,7 @@ public class ISBox extends Widget implements DTarget {
 	if (sender == value || sender == take) {
 	    int amount = rem;
 	    try {
-		amount = Integer.parseInt(value.text);
+		amount = Integer.parseInt(value.text());
 	    } catch (Exception ignored) {
 	    }
 	    if (amount > rem) {
