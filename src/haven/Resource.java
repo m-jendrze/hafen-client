@@ -1074,10 +1074,6 @@ public class Resource implements Serializable {
 	    o = new String(buf.bytes(), Utils.utf8);
 	    t = L10N.tooltip(getres(), o);
 	}
-	public Tooltip() {
-	    o = "...";
-	    t = "...";
-	}
                 
 	public void init() {}
     }
@@ -1578,10 +1574,6 @@ public class Resource implements Serializable {
 	for(Layer l : layers) {
 	    if(cl.isInstance(l))
 		return(cl.cast(l));
-	}
-	if (cl.equals(tooltip)) {
-		L layer = (L) new Tooltip();
-		return layer;
 	}
 	return(null);
     }
