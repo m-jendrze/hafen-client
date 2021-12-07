@@ -14,16 +14,25 @@ import java.util.stream.Collectors;
 
 public class StallInspector {
     
-    private final Map<Integer, Widget> widgets;
+    private static StallInspector si;
+    private Map<Integer, Widget> widgets;
     private boolean finished = true;
     private static final int TIMEOUT = 3000;
     private long lastCall = Long.MAX_VALUE;
     private Coord2d vcCoord;
     private String vcName;
     
-    public StallInspector(Map<Integer, Widget> widgets) {
+    private StallInspector(Map<Integer, Widget> widgets) {
         this.widgets = widgets;
-        System.out.println("created stall inspector");
+    }
+    
+    public static StallInspector createOrUpdate(Map<Integer, Widget> widgets) {
+        if(si == null) {
+            si = new StallInspector(widgets);
+        } else {
+            si.widgets = widgets;
+        }
+        return si;
     }
     
     public void start() {
@@ -44,8 +53,18 @@ public class StallInspector {
     
     public boolean openedStall() {
         Map<Integer, Widget> widgets = new HashMap<>(this.widgets);
-        return widgets.values().stream()
-            .anyMatch(e -> "Barter Stand".equals(getFieldValueString(e, "title")));
+        Optional<Widget> title = widgets.values().stream()
+            .filter(e -> "Barter Stand".equals(getFieldValueString(e, "title")))
+            .findFirst();
+        if(title.isPresent()) {
+            return title.map(e -> getWidgetsOf(e, "haven.res.ui.barterbox.Shopbox"))
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(this::checkLoaded)
+                .reduce(true, Boolean::logicalAnd);
+        } else {
+            return false;
+        }
     }
     
     public void analyzeStall(Coord2d stallCoords) {
@@ -56,14 +75,7 @@ public class StallInspector {
         if(wdg == null) {
             return;
         }
-        Widget child = wdg.child;
-        List<Widget> shopsRows = new ArrayList<>();
-        do {
-            if("haven.res.ui.barterbox.Shopbox".equals(child.getClass().getName())) {
-                shopsRows.add(child);
-            }
-            child = child.next;
-        } while (child != null);
+        List<Widget> shopsRows = getWidgetsOf(wdg, "haven.res.ui.barterbox.Shopbox");
         final List<StallRow> stallRows = shopsRows.stream()
             .map(this::analyzeWidget)
             .filter(Objects::nonNull)
@@ -71,6 +83,18 @@ public class StallInspector {
         Coord2d vect = vcCoord.sub(stallCoords);
         Integration.sendStallData(new StallData(stallRows, new CoordVector(vect.x, vect.y), vcName));
         finished = true;
+    }
+    
+    private List<Widget> getWidgetsOf(Widget wdg, String className) {
+        Widget child = wdg.child;
+        final List<Widget> widgets = new ArrayList<>();
+        do {
+            if(className.equals(child.getClass().getName())) {
+                widgets.add(child);
+            }
+            child = child.next;
+        } while (child != null);
+        return widgets;
     }
     
     public StallRow analyzeWidget(Widget wdg) {
@@ -93,14 +117,19 @@ public class StallInspector {
     
     @SuppressWarnings("unchecked")
     private StallItem getStallItem(Widget wdg) throws NoSuchFieldException, IllegalAccessException {
-    
-        Object info = getFieldValue(wdg, "info");
-        List<ItemInfo> cinfo = ItemInfo.buildinfo((ItemInfo.Owner) wdg, (Object[]) info);
         ResData resdata = (ResData) getFieldValue(wdg, "res");
         if(resdata == null) {
             return null;
         }
         Resource res = resdata.res.get();
+        if(wdg instanceof ItemInfo.SpriteOwner) {
+            ItemInfo.SpriteOwner so = (ItemInfo.SpriteOwner) wdg;
+            if(getFieldValue(so, "spr") == null) {
+                setFieldValue(so, "spr", new FakeSprite(new FakeSprite.FakeOwner(res)));
+            }
+        }
+        Object info = getFieldValue(wdg, "info");
+        final List<ItemInfo> cinfo = buildCinfo((ItemInfo.Owner) wdg, (Object[]) info);
         final String gfx = res.name;
         StallItem item = new StallItem(getName(cinfo), gfx, getQuality(cinfo), getAmount(cinfo));
         List<Supplier<Map<String, ?>>> extractors = List.of(
@@ -128,6 +157,18 @@ public class StallInspector {
         );
         analyzeCinfo(cinfo);
         return item;
+    }
+    
+    private List<ItemInfo> buildCinfo(ItemInfo.Owner wdg, Object[] info) {
+        List<ItemInfo> cinfo = null;
+        do {
+            try {
+                cinfo = ItemInfo.buildinfo(wdg, info);
+            } catch (RuntimeException ex) {
+                JBot.pause(100);
+            }
+        } while (cinfo == null);
+        return cinfo;
     }
     
     private void analyzeCinfo(List<ItemInfo> cinfo) throws IllegalAccessException {
@@ -180,6 +221,25 @@ public class StallInspector {
         }
     }
     
+    private boolean checkLoaded(Widget wdg) {
+        Object price = getFieldValue(wdg, "price");
+        if(price == null) {
+            return true;
+        }
+        ResData res1 = (ResData) getFieldValue(price, "res");
+        ResData res2 = (ResData) getFieldValue(wdg, "res");
+        if(res1 == null || res2 == null) {
+            return true;
+        }
+        try {
+            res1.res.get();
+            res2.res.get();
+            return true;
+        } catch (RuntimeException loading) {
+            return false;
+        }
+    }
+    
     private Price getPrice(Widget wdg) throws NoSuchFieldException, IllegalAccessException {
         Object price = wdg.getClass().getDeclaredField("price").get(wdg);
         if(price == null) {
@@ -229,12 +289,17 @@ public class StallInspector {
     }
     
     private String getName(List<ItemInfo> cinfo) {
-        Object element = cinfo.stream()
+        List<String> names = cinfo.stream()
             .filter(e -> "haven.ItemInfo$Name".equals(e.getClass().getName()))
+            .map(e -> getFieldValue(e, "original") instanceof String ?
+                (String) getFieldValue(e, "original") : null)
+            .collect(Collectors.toList());
+        String name = names.stream().findFirst().orElse(null);
+        name = names.stream()
+            .filter(e -> !"Bill of Possession".equals(e))
             .findFirst()
-            .orElse(null);
-        if(element != null) {
-            String name = (String) getFieldValue(element, "original");
+            .orElse(name);
+        if(name != null) {
             name = name.replace("Coin of ", "")
                 .replace("coins of ", "");
             return name;
@@ -593,6 +658,17 @@ public class StallInspector {
         Object v = null;
         try {
             Field f = getField(obj, name);
+            v = f.get(obj);
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        }
+        return v;
+    }
+    
+    private static <T> Object setFieldValue(Object obj, String name, T value) {
+        Object v = null;
+        try {
+            Field f = getField(obj, name);
+            f.set(obj, value);
             v = f.get(obj);
         } catch (NoSuchFieldException | IllegalAccessException ignored) {
         }

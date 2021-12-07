@@ -37,6 +37,7 @@ import java.awt.DisplayMode;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import haven.render.Environment;
@@ -75,7 +76,7 @@ public class UI {
     public final ActAudio.Root audio = new ActAudio.Root();
     private static final double scalef;
     public GameUI gui = null;
-    public StallInspector stallInspector = new StallInspector(widgets);
+    public StallInspector stallInspector = StallInspector.createOrUpdate(widgets);
     public boolean forcePswd = false;
     
     {

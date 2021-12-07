@@ -1356,7 +1356,7 @@ public class ChatUI extends Widget {
     private UI.Grab dm = null;
     private Coord doff;
     private static final int minh = 111;
-    public int savedh = UI.scale(Math.max(minh, Utils.getprefi("chatsize", minh)));
+    public int savedh = Math.min(700, UI.scale(Math.max(minh, Utils.getprefi("chatsize", minh))));
     public boolean mousedown(Coord c, int button) {
 	int bmfx = (sz.x - bmf.sz().x) / 2;
 	if((button == 1) && (c.y < bmf.sz().y) && (c.x >= bmfx) && (c.x <= (bmfx + bmf.sz().x))) {

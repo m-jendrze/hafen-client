@@ -1,7 +1,7 @@
 package net.junespark;
 
 import auto.Bot;
-import haven.*;
+import haven.UI;
 
 public class RemoteInterface implements Runnable {
     
@@ -11,6 +11,7 @@ public class RemoteInterface implements Runnable {
     private Integer counter = 0;
     private final Object waiter = new Object();
     private boolean started = false;
+    private boolean enabled = true;
     
     private RemoteInterface() {}
     
@@ -19,32 +20,39 @@ public class RemoteInterface implements Runnable {
             ri = new RemoteInterface();
         }
         ri.ui = ui;
-        ri.jBot = new JBot(ui);
+        ri.jBot = JBot.createJBot(ui);
         ui.forcePswd = true;
         return ri;
     }
     
     @Override
     public void run() {
-        if(started) return;
+        if(!enabled || started) return;
+        /*
+            33 0
+            0 -33
+            99 0
+            0 495
+         */
         started = true;
         System.out.println("started remote interface");
         JBot.pause(3000);
-        jBot.login("Kerath", "y25vpqp5");
-        JBot.pause(3000);
-        jBot.selectCharacter("Kerath Finloch");
-        JBot.pause(1000);
-        jBot.findWindowByTitle("Reset")
-            .ifPresent(e -> ui.wdgmsg(e.lchild.prev, "activate"));
-        JBot.pause(10000);
+        jBot.login("your_login", "your_password");
+        jBot.selectCharacter("character_name");
+        jBot.hearth();
+        //pathing from hearth fire to spot with visible village claim and clear path to middle of street
+        //currently set for finloch market
+        jBot.playerGoTo(33d, 0d);//3 tiles east
+        jBot.playerGoTo(0d, -33d);//3 tiles south
+        jBot.playerGoTo(99d, 0d);//9 tiles east
+        jBot.playerGoTo(0d, 495d);//north
         Bot.test(ui.gui);
         synchronized (waiter) {
             while (true) {
                 try {
-                    System.out.println(counter);
+                    //forgot what i wanted to do here lol
                     counter++;
                     waiter.wait(1000);
-                    //ui.wdgmsg(ui.getwidget(1), "login", creds);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

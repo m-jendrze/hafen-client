@@ -35,9 +35,11 @@ public class ItemAutoDrop {
 	}
     }
     
-    public static boolean needDrop(String name) {
+    public static boolean needDrop(String name, Float quantity) {
 	tryInit();
-	return cfg.getOrDefault(name, false);
+	boolean drop = cfg.getOrDefault(name, false);
+	drop = drop && (!name.toLowerCase().contains("seeds of") || (quantity != null && quantity > 49));
+	return drop;
     }
     
     private static void toggle(String name) {
@@ -242,7 +244,7 @@ public class ItemAutoDrop {
 		g.chcolor();
 		g.aimage(item.tex, new Coord(0, elh / 2), 0.0, 0.5);
 		g.image(CheckBox.sbox, showc);
-		if(needDrop(item.name))
+		if(needDrop(item.name, 50f))
 		    g.image(CheckBox.smark, showc);
 	    }
 	    
